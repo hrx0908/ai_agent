@@ -1,12 +1,17 @@
 package com.runxing.aiagent.app;
 
 import com.runxing.aiagent.advisor.MyLoggerAdvisor;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -58,5 +63,25 @@ public class LoveApp {
                 .entity(LoveReport.class);
         log.info("loveReport:{}",loveReport);
         return loveReport;
+    }
+    @Resource
+    private VectorStore vectorStore;
+    @Resource
+    private Advisor loveAppRagCloudAdvisor;
+    public String doChatWithRAG(String message, String chatId) {
+        String content = chatClient.prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                //开启日志
+                .advisors(new MyLoggerAdvisor())
+                //开启RAG功能，本地知识库
+//                .advisors(new QuestionAnswerAdvisor(vectorStore))
+               // 开启RAG功能，云知识库
+                .advisors(loveAppRagCloudAdvisor)
+                .call()
+                .content();
+        log.info("content: {}", content);
+        return content;
     }
 }
