@@ -17,6 +17,10 @@ import java.util.List;
 public class LoveAppVectorStoreConfig {
     @Resource
     private LoveAppDocumentLoader loveAppDocumentLoader;
+    @Resource
+    private MyTokenTextSplitter myTokenTextSplitter;
+    @Resource
+    private MyKeywordEnricher myKeywordEnricher;
 
     @Bean
     VectorStore LoveAppVectorStore(EmbeddingModel dashscopEmbeddingModel) {
@@ -24,7 +28,11 @@ public class LoveAppVectorStoreConfig {
                 .build();
         // 加载文档
         List<Document> documents = loveAppDocumentLoader.loadMarkdownDocuments();
-        vectorStore.add(documents);
+//        //自主切分
+//        documents = myTokenTextSplitter.splitCustomized(documents);
+        //自动补充关键词元信息
+        List<Document> enrichedDocuments = myKeywordEnricher.enrichDocuments(documents);
+        vectorStore.add(enrichedDocuments);
         return vectorStore;
 
     }

@@ -1,6 +1,8 @@
 package com.runxing.aiagent.app;
 
 import com.runxing.aiagent.advisor.MyLoggerAdvisor;
+import com.runxing.aiagent.rag.LoveAppRagCustomAdvisorFactory;
+import com.runxing.aiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,7 +12,6 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
@@ -64,21 +65,33 @@ public class LoveApp {
         log.info("loveReport:{}",loveReport);
         return loveReport;
     }
-    @Resource
-    private VectorStore vectorStore;
+    @Resource(name = "pgVectorVectorStore")
+    private VectorStore pgVectorVectorStore;
+    @Resource(name = "LoveAppVectorStore")
+    private VectorStore loveAppVectorStore;
     @Resource
     private Advisor loveAppRagCloudAdvisor;
+    @Resource
+    private QueryRewriter queryRewriter;
     public String doChatWithRAG(String message, String chatId) {
+        // 查询重写
+        String rewrittenMessage = queryRewriter.doQueryRewrite(message);
         String content = chatClient.prompt()
-                .user(message)
+                //重写用户输入
+                .user(rewrittenMessage)
+//                .user(message)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
-                //开启日志
-                .advisors(new MyLoggerAdvisor())
+                //开启日志，在上面默认的地方已经开启了，这里不用再开启自定义日志，否则控制台会打印两份日志
+//                .advisors(new MyLoggerAdvisor())
                 //开启RAG功能，本地知识库
-//                .advisors(new QuestionAnswerAdvisor(vectorStore))
+                .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
                // 开启RAG功能，云知识库
-                .advisors(loveAppRagCloudAdvisor)
+//                .advisors(loveAppRagCloudAdvisor)
+                // 开启RAG功能，本地知识库（基于pgVector）
+//                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
+                // 应用自定义的RAG检索增强服务（文档向量检索查询器+空上下文增强）
+//                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(loveAppVectorStore,"已婚"))
                 .call()
                 .content();
         log.info("content: {}", content);

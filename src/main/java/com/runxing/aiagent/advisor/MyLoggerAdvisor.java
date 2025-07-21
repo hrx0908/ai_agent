@@ -37,10 +37,10 @@ public class MyLoggerAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
     }
 
     private AdvisedRequest before(AdvisedRequest advisedRequest) {
-       log.info("AI Request:{}",advisedRequest.userText());
+       log.info("自定义日志AI Request:{}",advisedRequest.userText());
         return advisedRequest;
     }
     private void observeAfter(AdvisedResponse advisedResponse){
-        log.info("AI Response:{}",advisedResponse.response().getResult().getOutput().getText());
+        log.info("自定义日志AI Response:{}",advisedResponse.response().getResult().getOutput().getText());
     }
 }

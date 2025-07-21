@@ -4,10 +4,22 @@ spring:
   application:
     name: ai-agent
   ai:
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        dimensions: 1536
+        distance-type: COSINE_DISTANCE
+        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
     dashscope:
       chat:
         options:
           model: qwen-plus
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/ai_agent
+#    username: postgres
+#    password: 改为你的密码
+
+
 server:
   port: 8123
   servlet:
