@@ -4,14 +4,16 @@ import com.runxing.aiagent.advisor.MyLoggerAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RainManus extends ToolCallAgent {
   
-    public RainManus(ToolCallback[] allTools, ChatModel dashscopeChatModel) {
+    public RainManus(ToolCallback[] allTools, ChatModel dashscopeChatModel, ToolCallbackProvider toolCallbackProvider) {
         super(allTools);  
         this.setName("rainManus");
+        this.setToolCallbackProvider(toolCallbackProvider);
         String SYSTEM_PROMPT = """  
                 You are RainManus, an all-capable AI assistant, aimed at solving any task presented by the user.  
                 You have various tools at your disposal that you can call upon to efficiently complete complex requests.  
@@ -24,7 +26,7 @@ public class RainManus extends ToolCallAgent {
                 If you want to stop the interaction at any point, use the `terminate` tool/function call.  
                 """;  
         this.setNextStepPrompt(NEXT_STEP_PROMPT);  
-        this.setMaxSteps(20);  
+        this.setMaxSteps(5);
         // 初始化客户端  
         ChatClient chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultAdvisors(new MyLoggerAdvisor())

@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ToolRegistration {
-    TerminateTool terminateTool = new TerminateTool();
+
 
     @Bean
     public ToolCallback[] allTools() {
-
+        TerminateTool terminateTool = new TerminateTool();
         return ToolCallbacks.from(terminateTool);
 //        // ① MCP 远端工具
 //        FunctionCallback[] remote = toolCallbackProvider.getToolCallbacks();
